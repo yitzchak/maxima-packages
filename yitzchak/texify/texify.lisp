@@ -115,9 +115,18 @@
   `(initialize-hash (texify-style-functions (get-style ',name))
                     ',functions))
 
+(defmacro def-style-function-default (name &rest controls)
+  `(setf (texify-style-function-default (get-style ',name)) ',controls))
+
 (defmacro def-style-symbols (name &rest symbols)
   `(initialize-hash (texify-style-symbols (get-style ',name))
                     ',symbols))
+
+(defmacro def-style-symbol-default (name &rest controls)
+  `(setf (texify-style-symbol-default (get-style ',name)) ',controls))
+
+(defmacro def-style-string-default (name &rest controls)
+  `(setf (texify-style-string-default (get-style ',name)) ',controls))
 
 (defun make-texify-style (name &key (functions nil)
                                     (function-default nil)
@@ -925,164 +934,172 @@ Normalization Functions
   :functions `(,+tex-prefix-functions+ ((#\m . "~:/nullfix/~#[~; ~/prefix/~;^{~'s:/nullfix/} ~/prefix/~]")))
   :normalizers `(mexpt ((#\m . ,#'tex-prefix-functions-normalize-mexpt))))
 
-(make-texify-style '$latex
-  :functions '((mquotient rat) ((#\m . "~*\\frac{~:/nullfix/}{~:/nullfix/}")
-                                (#\s . "~*~/postfix//~/prefix/")
-                                (#\u . "~*~/postfix//~/prefix/"))
-               texify-diff-leibniz ((#\m . "~*~*\\frac{d~@[^{~:/nullfix/}~]~@[~:/nullfix/~]}{~@{\\mathop{d~:/nullfix/}~@[^{~:/nullfix/}~]~}}~1@*~@[~/prefix/~]"))
-               texify-diff-newton ((#\m . "~2*{~@[~[~;\\dot~;\\ddot~;\\overset{\\cdots}~:;\\overset{\\scriptscriptstyle\\left(~:*~'s:/nullfix/\\right)}~]~]~@[\\overset{\\scriptscriptstyle\\left(~'s:/nullfix/\\right)}~]{~1@*~:/nullfix/}}~2*~#[~:;\\left(~@{~:/nullfix/~^, ~}\\right)~]"))
-               (%mdo mdo) ((#\m . "~*\\mathop{\\mathbf{for}}\\;~:/nullfix/~@[\\;{\\mathbf{from}}\\;~:/nullfix/~]~@[{\\mathbf{step}}\]\\;~:/nullfix/~]~@[\\;{\\mathbf{next}}\\;~:/nullfix/~]~@[\\;{\\mathbf{thru}}\\;~:/nullfix/~]~@[\\;{\\mathbf{unless}}\\;~:/nullfix/~]\\;{\\mathbf{do}}\\;~/prefix/"))
-               (%mdoin mdoin) ((#\m . "~*\\mathop{\\mathbf{for}}\\;~:/nullfix/\\;{\\mathbf{in}}\\;~:/nullfix/\\;~*~*~*~@[{\\mathbf{unless}}\\;~:/nullfix/\\;~]{\\mathbf{do}}\\;~/prefix/"))
-               (mcond %mcond) ((#\m . "~*\\mathop{\\mathbf{if}}\\;~:/nullfix/\\;\\mathop{\\mathbf{then}}\\;~:/nullfix/~@{\\;~:[\\mathop{\\mathbf{else}}~;~:*\\mathop{\\mathbf{elseif}}\\;~:/nullfix/\\;\\mathop{\\mathbf{then}}~]\\;~:/nullfix/~}"))
-               mlabel ((#\m . "\\[~*~:[~;~:*(~:/nullfix/)\\; ~]~:/nullfix/\\]")
-                       (#\i . "\\(~*~*~:/nullfix/\\)"))
-               texify-math ((#\m . "\\begin{equation}~%~*~:/nullfix/~%\\end{equation}")
-                            (#\i . "\\(~*~:/nullfix/\\)")))
-  :string-default '((#\m . "\\mbox{~*~A}")
-                    (#\t . "\\mbox{~A}"))
-  :symbol-default '((#\m . "~[~;~A~:[~;~:*_{~{~A~^, ~}}~]~:;\\mathop{\\mathrm{~A}~:[~;~:*_{~{~A~^, ~}}~]}~]")
-                    (#\u . "~*\\mathop{\\mathrm{~A}~:[~;~:*_{~@{~A~^, ~}}~]}"))
-  :symbols '(%laplace ((#\m . "\\mathcal{L}"))
-             |$Alpha| ((#\m . "\\mathrm{A}"))
-             |$Beta| ((#\m . "\\mathrm{B}"))
-             |$Chi| ((#\m . "\\mathrm{X}"))
-             |$Epsilon| ((#\m . "\\mathrm{E}"))
-             |$Eta| ((#\m . "\\mathrm{H}"))
-             |$Iota| ((#\m . "\\mathrm{I}"))
-             |$Kappa| ((#\m . "\\mathrm{K}"))
-             |$Mu| ((#\m . "\\mathrm{M}"))
-             |$Nu| ((#\m . "\\mathrm{N}"))
-             |$Omicron| ((#\m . "\\mathrm{O}"))
-             |$Rho| ((#\m . "\\mathrm{P}"))
-             |$Tau| ((#\m . "\\mathrm{T}"))
-             |$Zeta| ((#\m . "\\mathrm{Z}"))
-             $done ((#\m . "\\mathop{\\mathbf{done}}"))
-             ($false nil) ((#\m . "\\mathop{\\mathbf{false}}"))
-             ($true t)  ((#\m . "\\mathop{\\mathbf{true}}"))
-             mprog ((#\m . "\\mathop{\\mathbf{block}}"))
-             ;; Ampere
-             ($ampere $amp) ((#\u . "\\mathop{\\mathrm{A}}"))
-             (|$microA| $microampere) ((#\u . "\\mathop{\\micro\\mathrm{A}}"))
-             ;; AU
-             $astronomical_unit ((#\u . "\\mathop{\\mathrm{AU}}"))
-             ;; becquerel
-             $becquerel ((#\u . "\\mathop{\\mathrm{Bq}}"))
-             ;; candela
-             $candela ((#\u . "\\mathop{\\mathrm{cd}}"))
-             ;; Coulomb
-             $coulomb ((#\u . "\\mathop{\\mathrm{C}}"))
-             (|$microC| $microcoulomb) ((#\u . "\\mathop{\\micro\\mathrm{C}}"))
-             ;; day
-             $day ((#\u . "\\mathop{\\mathrm{d}}"))
-             ;; Farad
-             $farad ((#\u . "\\mathop{\\mathrm{F}}"))
-             (|$microF| $microfarad) ((#\u . "\\mathop{\\micro\\mathrm{F}}"))
-             ;; feet
-             $feet ((#\u . "\\mathop{\\mathrm{ft}}"))
-             ;; Gram
-             $kilogram ((#\u . "\\mathop{\\mathrm{kg}}"))
-             ($microg $microgram) ((#\u . "\\mathop{\\micro\\mathrm{g}}"))
-             ;; Gray
-             $gray ((#\u . "\\mathop{\\mathrm{Gy}}"))
-             ;; Hectare
-             $hectare ((#\u . "\\mathop{\\mathrm{Ha}}"))
-             ;; Henry
-             $henry ((#\u . "\\mathop{\\mathrm{H}}"))
-             (|$microH| $microhenry) ((#\u . "\\mathop{\\micro\\mathrm{Hs}}"))
-             ;; Hertz
-             $hertz ((#\u . "\\mathop{\\mathrm{Hz}}"))
-             (|$microHz| $microhertz) ((#\u . "\\mathop{\\micro\\mathrm{Hz}}"))
-             ;; hour
-             $hour ((#\u . "\\mathop{\\mathrm{hr}}"))
-             ;; inch
-             $inch ((#\u . "\\mathop{\\mathrm{in}}"))
-             ;; Joule
-             ($joule |$j|) ((#\u . "\\mathop{\\mathrm{J}}"))
-            (|$microJ| $microjoule) ((#\u . "\\mathop{\\micro\\mathrm{J}}"))
-             ;; Katal
-             ($katal $kat) ((#\u . "\\mathop{\\mathrm{kat}}"))
-             ;; Kelvin
-             ('$kelvin |$k|) ((#\u . "\\mathop{\\mathrm{K}}"))
-             (|$microK| $microkelvin) ((#\u . "\\mathop{\\micro\\mathrm{K}}"))
-             ;; light year
-             $light_year ((#\u . "\\mathop{\\mathrm{lyr}}"))
-             ;; Liter
-             ($liter $l |$l|) ((#\u . "\\mathop{\\mathrm{L}}"))
-             ;; lumen
-             $lumen ((#\u . "\\mathop{\\mathrm{lm}}"))
-             ;; lux
-             $lux ((#\u . "\\mathop{\\mathrm{lx}}"))
-             ;; Meter
-             $kilometer ((#\u . "\\mathop{\\mathrm{km}}"))
-             $meter ((#\u . "\\mathop{\\mathrm{m}}"))
-             ($micrometer $micron $microm) ((#\u . "\\mathop{\\micro\\mathrm{m}}"))
-             ;; metric ton
-             $metric_ton ((#\u . "\\mathop{\\mathrm{t}}"))
-             ;; minute
-             $minute ((#\u . "\\mathop{\\mathrm{min}}"))
-             ;; Mole
-             $mole ((#\u . "\\mathop{\\mathrm{mol}}"))
-             ($micromole $micromol) ((#\u . "\\mathop{\\micro\\mathrm{mol}}"))
-             ;; Newton
-             $newton ((#\u . "\\mathop{\\mathrm{N}}"))
-             (|$microN| $micronewton) ((#\u . "\\mathop{\\micro\\mathrm{N}}"))
-              ;; Ohm
-             |$GOhm| ((#\u . "\\mathop{{\\mathrm{G}}\\Omega}"))
-             |$MOhm| ((#\u . "\\mathop{{\\mathrm{M}}\\Omega}"))
-             |$kOhm| ((#\u . "\\mathop{{\\mathrm{k}}\\Omega}"))
-             ($ohm |$Ohm|) ((#\u . "\\mathop{\\Omega}"))
-             |$mOhm| ((#\u . "\\mathop{{\\mathrm{m}}\\Omega}"))
-             $microOhm ((#\u . "\\mathop{\\micro\\Omega}"))
-             |$pOhm| ((#\u . "\\mathop{{\\mathrm{p}}\\Omega}"))
-             |$nOhm| ((#\u . "\\mathop{{\\mathrm{n}}\\Omega}"))
-             |$fOhm| ((#\u . "\\mathop{{\\mathrm{f}}\\Omega}"))
-             ;; Pascal
-             $pascal ((#\u . "\\mathop{\\mathrm{Pa}}"))
-             (|$microPa| $micropascal) ((#\u . "\\mathop{\\micro\\mathrm{Pa}}"))
-             ;; parsec
-             $parsec ((#\u . "\\mathop{\\mathrm{pc}}"))
-             ;; Second
-             $second ((#\u . "\\mathop{\\mathrm{s}}"))
-             ($micros $microsecond) ((#\u . "\\mathop{\\micro\\mathrm{s}}"))
-             ;; Siemens
-             $siemens ((#\u . "\\mathop{\\mathrm{S}}"))
-             (|$microS| $microsiemens) ((#\u . "\\mathop{\\micro\\mathrm{S}}"))
-             ;; Tesla
-             $tesla ((#\u . "\\mathop{\\mathrm{T}}"))
-             (|$microT| $microtesla) ((#\u . "\\mathop{\\micro\\mathrm{T}}"))
-             ;; Volt
-             $volt ((#\u . "\\mathop{\\mathrm{V}}"))
-             (|$microV| $microvolt) ((#\u . "\\mathop{\\micro\\mathrm{V}}"))
-             ;; Watt
-             $watt ((#\u . "\\mathop{\\mathrm{W}}"))
-             (|$microW| $microwatt) ((#\u . "\\mathop{\\micro\\mathrm{W}}"))
-             ;; Weber
-             $weber ((#\u . "\\mathop{\\mathrm{Wb}}"))
-             (|$microWb| $microweber) ((#\u . "\\mathop{\\micro\\mathrm{Wb}}"))
-             ;; yard
-             $yard ((#\u . "\\mathop{\\mathrm{yd}}"))
-             ;; physical_constants
-             $%E_h ((#\m . "E_{\\mathrm{h}}"))
-             $%ratio_h_me ((#\m . "(h/m_{\\mathrm{e}})"))
-             $%m_e ((#\m . "m_{\\mathrm{e}}"))
-             $%m_u ((#\m . "\\mu_{\\mathrm{u}}"))
-             $%c_1L ((#\m . "c_{\\mathrm{1L}}"))))
+(def-style-functions $latex
+  (mquotient rat) ((#\m . "~*\\frac{~:/nullfix/}{~:/nullfix/}")
+                   (#\s . "~*~/postfix//~/prefix/")
+                   (#\u . "~*~/postfix//~/prefix/"))
+  texify-diff-leibniz ((#\m . "~*~*\\frac{d~@[^{~:/nullfix/}~]~@[~:/nullfix/~]}{~@{\\mathop{d~:/nullfix/}~@[^{~:/nullfix/}~]~}}~1@*~@[~/prefix/~]"))
+  texify-diff-newton ((#\m . "~2*{~@[~[~;\\dot~;\\ddot~;\\overset{\\cdots}~:;\\overset{\\scriptscriptstyle\\left(~:*~'s:/nullfix/\\right)}~]~]~@[\\overset{\\scriptscriptstyle\\left(~'s:/nullfix/\\right)}~]{~1@*~:/nullfix/}}~2*~#[~:;\\left(~@{~:/nullfix/~^, ~}\\right)~]"))
+  (%mdo mdo) ((#\m . "~*\\mathop{\\mathbf{for}}\\;~:/nullfix/~@[\\;{\\mathbf{from}}\\;~:/nullfix/~]~@[{\\mathbf{step}}\]\\;~:/nullfix/~]~@[\\;{\\mathbf{next}}\\;~:/nullfix/~]~@[\\;{\\mathbf{thru}}\\;~:/nullfix/~]~@[\\;{\\mathbf{unless}}\\;~:/nullfix/~]\\;{\\mathbf{do}}\\;~/prefix/"))
+  (%mdoin mdoin) ((#\m . "~*\\mathop{\\mathbf{for}}\\;~:/nullfix/\\;{\\mathbf{in}}\\;~:/nullfix/\\;~*~*~*~@[{\\mathbf{unless}}\\;~:/nullfix/\\;~]{\\mathbf{do}}\\;~/prefix/"))
+  (mcond %mcond) ((#\m . "~*\\mathop{\\mathbf{if}}\\;~:/nullfix/\\;\\mathop{\\mathbf{then}}\\;~:/nullfix/~@{\\;~:[\\mathop{\\mathbf{else}}~;~:*\\mathop{\\mathbf{elseif}}\\;~:/nullfix/\\;\\mathop{\\mathbf{then}}~]\\;~:/nullfix/~}"))
+  mlabel ((#\m . "\\[~*~:[~;~:*(~:/nullfix/)\\; ~]~:/nullfix/\\]")
+          (#\i . "\\(~*~*~:/nullfix/\\)"))
+  texify-math ((#\m . "\\begin{equation}~%~*~:/nullfix/~%\\end{equation}")
+               (#\i . "\\(~*~:/nullfix/\\)")))
+
+(def-style-string-default $latex
+  (#\m . "\\mbox{~*~A}")
+  (#\t . "\\mbox{~A}"))
+
+(def-style-symbol-default $latex
+  (#\m . "~[~;~A~:[~;~:*_{~{~A~^, ~}}~]~:;\\mathop{\\mathrm{~A}~:[~;~:*_{~{~A~^, ~}}~]}~]")
+  (#\u . "~*\\mathop{\\mathrm{~A}~:[~;~:*_{~@{~A~^, ~}}~]}"))
+
+(def-style-symbols $latex
+  %laplace ((#\m . "\\mathcal{L}"))
+  |$Alpha| ((#\m . "\\mathrm{A}"))
+  |$Beta| ((#\m . "\\mathrm{B}"))
+  |$Chi| ((#\m . "\\mathrm{X}"))
+  |$Epsilon| ((#\m . "\\mathrm{E}"))
+  |$Eta| ((#\m . "\\mathrm{H}"))
+  |$Iota| ((#\m . "\\mathrm{I}"))
+  |$Kappa| ((#\m . "\\mathrm{K}"))
+  |$Mu| ((#\m . "\\mathrm{M}"))
+  |$Nu| ((#\m . "\\mathrm{N}"))
+  |$Omicron| ((#\m . "\\mathrm{O}"))
+  |$Rho| ((#\m . "\\mathrm{P}"))
+  |$Tau| ((#\m . "\\mathrm{T}"))
+  |$Zeta| ((#\m . "\\mathrm{Z}"))
+  $done ((#\m . "\\mathop{\\mathbf{done}}"))
+  ($false nil) ((#\m . "\\mathop{\\mathbf{false}}"))
+  ($true t)  ((#\m . "\\mathop{\\mathbf{true}}"))
+  mprog ((#\m . "\\mathop{\\mathbf{block}}"))
+  ;; Ampere
+  ($ampere $amp) ((#\u . "\\mathop{\\mathrm{A}}"))
+  (|$microA| $microampere) ((#\u . "\\mathop{\\micro\\mathrm{A}}"))
+  ;; AU
+  $astronomical_unit ((#\u . "\\mathop{\\mathrm{AU}}"))
+  ;; becquerel
+  $becquerel ((#\u . "\\mathop{\\mathrm{Bq}}"))
+  ;; candela
+  $candela ((#\u . "\\mathop{\\mathrm{cd}}"))
+  ;; Coulomb
+  $coulomb ((#\u . "\\mathop{\\mathrm{C}}"))
+  (|$microC| $microcoulomb) ((#\u . "\\mathop{\\micro\\mathrm{C}}"))
+  ;; day
+  $day ((#\u . "\\mathop{\\mathrm{d}}"))
+  ;; Farad
+  $farad ((#\u . "\\mathop{\\mathrm{F}}"))
+  (|$microF| $microfarad) ((#\u . "\\mathop{\\micro\\mathrm{F}}"))
+  ;; feet
+  $feet ((#\u . "\\mathop{\\mathrm{ft}}"))
+  ;; Gram
+  $kilogram ((#\u . "\\mathop{\\mathrm{kg}}"))
+  ($microg $microgram) ((#\u . "\\mathop{\\micro\\mathrm{g}}"))
+  ;; Gray
+  $gray ((#\u . "\\mathop{\\mathrm{Gy}}"))
+  ;; Hectare
+  $hectare ((#\u . "\\mathop{\\mathrm{Ha}}"))
+  ;; Henry
+  $henry ((#\u . "\\mathop{\\mathrm{H}}"))
+  (|$microH| $microhenry) ((#\u . "\\mathop{\\micro\\mathrm{Hs}}"))
+  ;; Hertz
+  $hertz ((#\u . "\\mathop{\\mathrm{Hz}}"))
+  (|$microHz| $microhertz) ((#\u . "\\mathop{\\micro\\mathrm{Hz}}"))
+  ;; hour
+  $hour ((#\u . "\\mathop{\\mathrm{hr}}"))
+  ;; inch
+  $inch ((#\u . "\\mathop{\\mathrm{in}}"))
+  ;; Joule
+  ($joule |$j|) ((#\u . "\\mathop{\\mathrm{J}}"))
+  (|$microJ| $microjoule) ((#\u . "\\mathop{\\micro\\mathrm{J}}"))
+  ;; Katal
+  ($katal $kat) ((#\u . "\\mathop{\\mathrm{kat}}"))
+  ;; Kelvin
+  ('$kelvin |$k|) ((#\u . "\\mathop{\\mathrm{K}}"))
+  (|$microK| $microkelvin) ((#\u . "\\mathop{\\micro\\mathrm{K}}"))
+  ;; light year
+  $light_year ((#\u . "\\mathop{\\mathrm{lyr}}"))
+  ;; Liter
+  ($liter $l |$l|) ((#\u . "\\mathop{\\mathrm{L}}"))
+  ;; lumen
+  $lumen ((#\u . "\\mathop{\\mathrm{lm}}"))
+  ;; lux
+  $lux ((#\u . "\\mathop{\\mathrm{lx}}"))
+  ;; Meter
+  $kilometer ((#\u . "\\mathop{\\mathrm{km}}"))
+  $meter ((#\u . "\\mathop{\\mathrm{m}}"))
+  ($micrometer $micron $microm) ((#\u . "\\mathop{\\micro\\mathrm{m}}"))
+  ;; metric ton
+  $metric_ton ((#\u . "\\mathop{\\mathrm{t}}"))
+  ;; minute
+  $minute ((#\u . "\\mathop{\\mathrm{min}}"))
+  ;; Mole
+  $mole ((#\u . "\\mathop{\\mathrm{mol}}"))
+  ($micromole $micromol) ((#\u . "\\mathop{\\micro\\mathrm{mol}}"))
+  ;; Newton
+  $newton ((#\u . "\\mathop{\\mathrm{N}}"))
+  (|$microN| $micronewton) ((#\u . "\\mathop{\\micro\\mathrm{N}}"))
+  ;; Ohm
+  |$GOhm| ((#\u . "\\mathop{{\\mathrm{G}}\\Omega}"))
+  |$MOhm| ((#\u . "\\mathop{{\\mathrm{M}}\\Omega}"))
+  |$kOhm| ((#\u . "\\mathop{{\\mathrm{k}}\\Omega}"))
+  ($ohm |$Ohm|) ((#\u . "\\mathop{\\Omega}"))
+  |$mOhm| ((#\u . "\\mathop{{\\mathrm{m}}\\Omega}"))
+  $microOhm ((#\u . "\\mathop{\\micro\\Omega}"))
+  |$pOhm| ((#\u . "\\mathop{{\\mathrm{p}}\\Omega}"))
+  |$nOhm| ((#\u . "\\mathop{{\\mathrm{n}}\\Omega}"))
+  |$fOhm| ((#\u . "\\mathop{{\\mathrm{f}}\\Omega}"))
+  ;; Pascal
+  $pascal ((#\u . "\\mathop{\\mathrm{Pa}}"))
+  (|$microPa| $micropascal) ((#\u . "\\mathop{\\micro\\mathrm{Pa}}"))
+  ;; parsec
+  $parsec ((#\u . "\\mathop{\\mathrm{pc}}"))
+  ;; Second
+  $second ((#\u . "\\mathop{\\mathrm{s}}"))
+  ($micros $microsecond) ((#\u . "\\mathop{\\micro\\mathrm{s}}"))
+  ;; Siemens
+  $siemens ((#\u . "\\mathop{\\mathrm{S}}"))
+  (|$microS| $microsiemens) ((#\u . "\\mathop{\\micro\\mathrm{S}}"))
+  ;; Tesla
+  $tesla ((#\u . "\\mathop{\\mathrm{T}}"))
+  (|$microT| $microtesla) ((#\u . "\\mathop{\\micro\\mathrm{T}}"))
+  ;; Volt
+  $volt ((#\u . "\\mathop{\\mathrm{V}}"))
+  (|$microV| $microvolt) ((#\u . "\\mathop{\\micro\\mathrm{V}}"))
+  ;; Watt
+  $watt ((#\u . "\\mathop{\\mathrm{W}}"))
+  (|$microW| $microwatt) ((#\u . "\\mathop{\\micro\\mathrm{W}}"))
+  ;; Weber
+  $weber ((#\u . "\\mathop{\\mathrm{Wb}}"))
+  (|$microWb| $microweber) ((#\u . "\\mathop{\\micro\\mathrm{Wb}}"))
+  ;; yard
+  $yard ((#\u . "\\mathop{\\mathrm{yd}}"))
+  ;; physical_constants
+  $%E_h ((#\m . "E_{\\mathrm{h}}"))
+  $%ratio_h_me ((#\m . "(h/m_{\\mathrm{e}})"))
+  $%m_e ((#\m . "m_{\\mathrm{e}}"))
+  $%m_u ((#\m . "\\mu_{\\mathrm{u}}"))
+  $%c_1L ((#\m . "c_{\\mathrm{1L}}")))
 
 (def-style-functions $latex_diff_upright_d
   texify-diff-euler ((#\m . "~2*~@{\\mathrm{D}_~:/nullfix/~@[^{~:/nullfix/}~] ~}~1@*~/prefix/"))
   texify-diff-leibniz ((#\m . "~*~*\\frac{\\mathrm{d}~@[^{~:/nullfix/}~]~@[~:/nullfix/~]}{~@{\\mathop{\\mathrm{d}~:/nullfix/}~@[^{~:/nullfix/}~]~}}~1@*~@[~/prefix/~]"))
   (%integrate $integrate) ((#\m . "~*\\int~2*~#[~:;_{~'s:/nullfix/}^{~'s:/nullfix/}~] ~1@*~:/nullfix/\\mathop{\\mathrm{d}~:/nullfix/}")))
 
-(make-texify-style '$amsmath
-  :functions '((%at $at) ((#\m . "~*\\left.~/postfix/\\rvert_{~'s:/nullfix/}"))
-               $binomial ((#\m . "~*\\binom{~:/nullfix/}{~/nullfix/}"))
-               $matrix ((#\m . "~*\\begin{bmatrix}~%~@{  ~'a:/nullfix/~^\\\\~%~}~%\\end{bmatrix}"))
-               texify-diff-newton ((#\m . "~2*{~@[~[~;\\dot~;\\ddot~;\\dddot~:;\\overset{\\scriptscriptstyle\\left(~:*~'s:/nullfix/\\right)}~]~]~@[\\overset{\\scriptscriptstyle\\left(~'s:/nullfix/\\right)}~]{~1@*~:/nullfix/}}~2*~#[~:;\\left(~@{~:/nullfix/~^, ~}\\right)~]"))
-               mabs ((#\m . "~*\\lvert~:/nullfix/\\rvert"))
-               mlabel ((#\m . "~*~:[\\begin{equation*}~%~:/nullfix/~%\\end{equation*}~;~:*\\begin{equation}~%\\tag{\\(~:/nullfix/\\)} ~:/nullfix/~%\\end{equation}~]")
-                       (#\i . "\\(~*~*~:/nullfix/\\)")))
-  :string-default '((#\m . "\\text{~*~A}")
-                    (#\t . "\\text{~A}")))
+(def-style-functions $amsmath
+  (%at $at) ((#\m . "~*\\left.~/postfix/\\rvert_{~'s:/nullfix/}"))
+  $binomial ((#\m . "~*\\binom{~:/nullfix/}{~/nullfix/}"))
+  $matrix ((#\m . "~*\\begin{bmatrix}~%~@{  ~'a:/nullfix/~^\\\\~%~}~%\\end{bmatrix}"))
+  texify-diff-newton ((#\m . "~2*{~@[~[~;\\dot~;\\ddot~;\\dddot~:;\\overset{\\scriptscriptstyle\\left(~:*~'s:/nullfix/\\right)}~]~]~@[\\overset{\\scriptscriptstyle\\left(~'s:/nullfix/\\right)}~]{~1@*~:/nullfix/}}~2*~#[~:;\\left(~@{~:/nullfix/~^, ~}\\right)~]"))
+  mabs ((#\m . "~*\\lvert~:/nullfix/\\rvert"))
+  mlabel ((#\m . "~*~:[\\begin{equation*}~%~:/nullfix/~%\\end{equation*}~;~:*\\begin{equation}~%\\tag{\\(~:/nullfix/\\)} ~:/nullfix/~%\\end{equation}~]")
+          (#\i . "\\(~*~*~:/nullfix/\\)")))
+
+(def-style-string-default $amsmath
+  (#\m . "\\text{~*~A}")
+  (#\t . "\\text{~A}"))
 
 (def-style-functions $amsmath_pmatrix
   $matrix ((#\m . "~*\\begin{pmatrix}~%~@{~{~*~@{~:/nullfix/~^ & ~}~}~^\\\\~%  ~}~%\\end{pmatrix}")))
@@ -1109,240 +1126,244 @@ Normalization Functions
                    (#\s . "~*~/postfix//~/prefix/")
                    (#\u . "~*\\nicefrac{~/postfix/}{~/prefix/}")))
 
-(make-texify-style '$siunitx
-  :functions '(|$`| ((#\m . "~*\\SI{~'n:/nullfix/}{~'u:/nullfix/}"))
-               mexpt ((#\u . "~*~:/nullfix/\\tothe{~:/nullfix/}"))
-               mquotient ((#\u . "~*~/postfix//~/prefix/"))
-               mtimes ((#\u . "~*~@{~:/nullfix/~^.~}"))
-               texify-float ((#\n . "~*~A~@[e~A~]")))
-  :symbols '(;; Ampere
-             |$GA| ((#\u . "\\giga\\ampere"))
-             |$MA| ((#\u . "\\mega\\ampere"))
-             |$kA| ((#\u . "\\kilo\\ampere"))
-             ($ampere $amp |$a|) ((#\u . "\\ampere"))
-             |$mA| ((#\u . "\\milli\\ampere"))
-             (|$microA| $microampere) ((#\u . "\\micro\\ampere"))
-             |$nA| ((#\u . "\\nano\\ampere"))
-             |$pA| ((#\u . "\\pico\\ampere"))
-             |$fA| ((#\u . "\\femto\\ampere"))
-             ;; AU
-             ($astronomical_unit |$au|) ((#\u . "\\astronomicalunit"))
-             ;; becquerel
-             ($becquerel |$Bq|) ((#\u . "\\becquerel"))
-             ;; candela
-             $candela ((#\u . "\\candela"))
-             ;; Coulomb
-             |$GC| ((#\u . "\\giga\\coulomb"))
-             |$MC| ((#\u . "\\mega\\coulomb"))
-             |$kC| ((#\u . "\\kilo\\coulomb"))
-             ($coulomb |$c|) ((#\u . "\\coulomb"))
-             |$mC| ((#\u . "\\milli\\coulomb"))
-             (|$microC| $microcoulomb) ((#\u . "\\micro\\coulomb"))
-             |$pC| ((#\u . "\\pico\\coulomb"))
-             |$nC| ((#\u . "\\nano\\coulomb"))
-             |$fC| ((#\u . "\\femto\\coulomb"))
-             ;; day
-             $day ((#\u . "\\day"))
-             ;; degree
-             $degree ((#\u . "\\degree"))
-             ;; Farad
-             |$GF| ((#\u . "\\giga\\farad"))
-             |$MF| ((#\u . "\\mega\\farad"))
-             |$kF| ((#\u . "\\kilo\\farad"))
-             ($farad |$f|) ((#\u . "\\farad"))
-             |$mF| ((#\u . "\\milli\\farad"))
-             (|$microF| $microfarad) ((#\u . "\\micro\\farad"))
-             |$pF| ((#\u . "\\pico\\farad"))
-             |$nF| ((#\u . "\\nano\\farad"))
-             |$fF| ((#\u . "\\femto\\farad"))
-             ;; feet
-             $feet ((#\u . "ft"))
-             ;; Gram
-             |$Gg| ((#\u . "\\giga\\gram"))
-             |$Mg| ((#\u . "\\mega\\gram"))
-             ($kilogram $kg) ((#\u . "\\kilogram"))
-             $g ((#\u . "\\gram"))
-             $mg ((#\u . "\\milli\\gram"))
-             ($microg $microgram) ((#\u . "\\micro\\gram"))
-             $ng ((#\u . "\\nano\\gram"))
-             $pg ((#\u . "\\pico\\gram"))
-             $fg ((#\u . "\\femto\\gram"))
-             ;; Gray
-             ($gray |$Gy|) ((#\u . "\\gray"))
-             ;; Hectare
-             ($hectare $ha) ((#\u . "\\hectare"))
-             ;; Henry
-             |$GH| ((#\u . "\\giga\\henry"))
-             |$MH| ((#\u . "\\mega\\henry"))
-             |$kH| ((#\u . "\\kilo\\henry"))
-             ($henry |$h|) ((#\u . "\\henry"))
-             |$mH| ((#\u . "\\milli\\henry"))
-             (|$microH| $microhenry) ((#\u . "\\micro\\henry"))
-             |$nH| ((#\u . "\\nano\\henry"))
-             |$pH| ((#\u . "\\pico\\henry"))
-             |$fH| ((#\u . "\\femto\\henry"))
-             ;; Hertz
-             |$GHz| ((#\u . "\\giga\\hertz"))
-             |$MHz| ((#\u . "\\mega\\hertz"))
-             |$kHz| ((#\u . "\\kilo\\hertz"))
-             ($hertz |$Hz|) ((#\u . "\\hertz"))
-             |$mHz| ((#\u . "\\milli\\hertz"))
-             (|$microHz| $microhertz) ((#\u . "\\micro\\hertz"))
-             |$pHz| ((#\u . "\\pico\\hertz"))
-             |$nHz| ((#\u . "\\nano\\hertz"))
-             |$fHz| ((#\u . "\\femto\\hertz"))
-             ;; hour
-             $hour ((#\u . "\\hour"))
-             ;; inch
-             $inch ((#\u . "in"))
-             ;; Joule
-             |$GJ| ((#\u . "\\giga\\joule"))
-             |$MJ| ((#\u . "\\mega\\joule"))
-             |$kJ| ((#\u . "\\kilo\\joule"))
-             ($joule |$j|) ((#\u . "\\joule"))
-             |$mJ| ((#\u . "\\milli\\joule"))
-             (|$microJ| $microjoule) ((#\u . "\\micro\\joule"))
-             |$pJ| ((#\u . "\\pico\\joule"))
-             |$nJ| ((#\u . "\\nano\\joule"))
-             |$fJ| ((#\u . "\\femto\\joule"))
-             ;; Katal
-             ($katal $kat) ((#\u . "\\katal"))
-             ;; Kelvin
-             |$GK| ((#\u . "\\giga\\kelvin"))
-             |$MK| ((#\u . "\\mega\\kelvin"))
-             |$kK| ((#\u . "\\kilo\\kelvin"))
-             ('$kelvin |$k|) ((#\u . "\\kelvin"))
-             |$mK| ((#\u . "\\milli\\kelvin"))
-             (|$microK| $microkelvin) ((#\u . "\\micro\\kelvin"))
-             |$pK| ((#\u . "\\pico\\kelvin"))
-             |$nK| ((#\u . "\\nano\\kelvin"))
-             |$fK| ((#\u . "\\femto\\kelvin"))
-             ;; light year
-             $light_year ((#\u . "lyr"))
-             ;; Liter
-             ($liter $l |$l|) ((#\u . "\\liter"))
-             $ml ((#\u . "\\milli\\liter"))
-             ;; lumen
-             $lumen ((#\u . "\\lumen"))
-             ;; lux
-             $lux ((#\u . "\\lux"))
-             ;; Meter
-             |$Gm| ((#\u . "\\giga\\meter"))
-             |$Mm| ((#\u . "\\mega\\meter"))
-             ($kilometer $km) ((#\u . "\\kilo\\meter"))
-             ($meter $m) ((#\u . "\\meter"))
-             $cm ((#\u . "\\centi\\meter"))
-             $mm ((#\u . "\\milli\\meter"))
-             ($micrometer $micron $microm) ((#\u . "\\micro\\meter"))
-             $nm ((#\u . "\\nano\\meter"))
-             $pm ((#\u . "\\pico\\meter"))
-             $fm ((#\u . "\\femto\\meter"))
-             ;; metric ton
-             $metric_ton ((#\u . "\\tonne"))
-             ;; minute
-             $minute ((#\u . "\\minute"))
-             ;; Mole
-             |$Gmol| ((#\u . "\\giga\\mole"))
-             |$Mmol| ((#\u . "\\mega\\mole"))
-             $kmol ((#\u . "\\kilo\\mole"))
-             ($mole $mol) ((#\u . "\\mole"))
-             $mmol ((#\u . "\\milli\\mole"))
-             ($micromole $micromol) ((#\u . "\\micro\\mole"))
-             $nmol ((#\u . "\\nano\\mole"))
-             $pmol ((#\u . "\\pico\\mole"))
-             $fmol ((#\u . "\\femto\\mole"))
-             ;; Newton
-             |$GN| ((#\u . "\\giga\\newton"))
-             |$MN| ((#\u . "\\mega\\newton"))
-             |$kN| ((#\u . "\\kilo\\newton"))
-             ($newton |$n|) ((#\u . "\\newton"))
-             |$mN| ((#\u . "\\milli\\newton"))
-             (|$microN| $micronewton) ((#\u . "\\micro\\newton"))
-             |$pN| ((#\u . "\\pico\\newton"))
-             |$nN| ((#\u . "\\nano\\newton"))
-             |$fN| ((#\u . "\\femto\\newton"))
-             ;; Ohm
-             |$GOhm| ((#\u . "\\giga\\ohm"))
-             |$MOhm| ((#\u . "\\mega\\ohm"))
-             |$kOhm| ((#\u . "\\kilo\\ohm"))
-             ($ohm |$Ohm|) ((#\u . "\\ohm"))
-             |$mOhm| ((#\u . "\\milli\\ohm"))
-             $microOhm ((#\u . "\\micro\\ohm"))
-             |$pOhm| ((#\u . "\\pico\\ohm"))
-             |$nOhm| ((#\u . "\\nano\\ohm"))
-             |$fOhm| ((#\u . "\\femto\\ohm"))
-             ;; Pascal
-             |$GPa| ((#\u . "\\giga\\pascal"))
-             |$MPa| ((#\u . "\\mega\\pascal"))
-             |$kPa| ((#\u . "\\kilo\\pascal"))
-             ($pascal |$Pa|) ((#\u . "\\pascal"))
-             |$mPa| ((#\u . "\\milli\\pascal"))
-             (|$microPa| $micropascal) ((#\u . "\\micro\\pascal"))
-             |$pPa| ((#\u . "\\pico\\pascal"))
-             |$nPa| ((#\u . "\\nano\\pascal"))
-             |$fPa| ((#\u . "\\femto\\pascal"))
-             ;; parsec
-             ($parsec $pc) ((#\u . "pc"))
-             ;; Second
-             |$Gs| ((#\u . "\\giga\\second"))
-             |$Ms| ((#\u . "\\mega\\second"))
-             $ks ((#\u . "\\kilo\\second"))
-             ($second $s) ((#\u . "\\second"))
-             $ms ((#\u . "\\milli\\second"))
-             ($micros $microsecond) ((#\u . "\\micro\\second"))
-             $ns ((#\u . "\\nano\\second"))
-             $ps ((#\u . "\\pico\\second"))
-             $fs ((#\u . "\\femto\\second"))
-             ;; Siemens
-             |$GS| ((#\u . "\\giga\\siemens"))
-             |$MS| ((#\u . "\\mega\\siemens"))
-             |$kS| ((#\u . "\\kilo\\siemens"))
-             ($siemens |$s|) ((#\u . "\\siemens"))
-             |$mS| ((#\u . "\\milli\\siemens"))
-             (|$microS| $microsiemens) ((#\u . "\\micro\\siemens"))
-             |$nS| ((#\u . "\\nano\\siemens"))
-             |$pS| ((#\u . "\\pico\\siemens"))
-             |$fS| ((#\u . "\\femto\\siemens"))
-             ;; Tesla
-             |$GT| ((#\u . "\\giga\\tesla"))
-             |$MT| ((#\u . "\\mega\\tesla"))
-             |$kT| ((#\u . "\\kilo\\tesla"))
-             ($tesla |$t|) ((#\u . "\\tesla"))
-             |$mT| ((#\u . "\\milli\\tesla"))
-             (|$microT| $microtesla) ((#\u . "\\micro\\tesla"))
-             |$nT| ((#\u . "\\nano\\tesla"))
-             |$pT| ((#\u . "\\pico\\tesla"))
-             |$fT| ((#\u . "\\femto\\tesla"))
-             ;; Volt
-             |$GV| ((#\u . "\\giga\\volt"))
-             |$MV| ((#\u . "\\mega\\volt"))
-             |$kV| ((#\u . "\\kilo\\volt"))
-             ($volt |$v|) ((#\u . "\\volt"))
-             |$mV| ((#\u . "\\milli\\volt"))
-             (|$microV| $microvolt) ((#\u . "\\micro\\volt"))
-             |$pV| ((#\u . "\\pico\\volt"))
-             |$nV| ((#\u . "\\nano\\volt"))
-             |$fV| ((#\u . "\\femto\\volt"))
-             ;; Watt
-             |$GW| ((#\u . "\\giga\\watt"))
-             |$MW| ((#\u . "\\mega\\watt"))
-             |$kW| ((#\u . "\\kilo\\watt"))
-             ($watt |$w|) ((#\u . "\\watt"))
-             |$mW| ((#\u . "\\milli\\watt"))
-             (|$microW| $microwatt) ((#\u . "\\micro\\watt"))
-             |$pW| ((#\u . "\\pico\\watt"))
-             |$nW| ((#\u . "\\nano\\watt"))
-             |$fW| ((#\u . "\\femto\\watt"))
-             ;; Weber
-             |$GWb| ((#\u . "\\giga\\weber"))
-             |$MWb| ((#\u . "\\mega\\weber"))
-             |$kWb| ((#\u . "\\kilo\\weber"))
-             ($weber |$Wb|) ((#\u . "\\weber"))
-             |$mWb| ((#\u . "\\milli\\weber"))
-             (|$microWb| $microweber) ((#\u . "\\micro\\weber"))
-             |$nWb| ((#\u . "\\nano\\weber"))
-             |$pWb| ((#\u . "\\pico\\weber"))
-             |$fWb| ((#\u . "\\femto\\weber"))
-             ;; yard
-             $yard ((#\u . "yd")))
-  :symbol-default '((#\u . "~*~A~:[~;~:*~@{_~A~}~]")))
+(def-style-functions $siunitx
+  |$`| ((#\m . "~*\\SI{~'n:/nullfix/}{~'u:/nullfix/}"))
+  mexpt ((#\u . "~*~:/nullfix/\\tothe{~:/nullfix/}"))
+  mquotient ((#\u . "~*~/postfix//~/prefix/"))
+  mtimes ((#\u . "~*~@{~:/nullfix/~^.~}"))
+  texify-float ((#\n . "~*~A~@[e~A~]")))
+
+(def-style-symbols $siunitx
+  ;; Ampere
+  |$GA| ((#\u . "\\giga\\ampere"))
+  |$MA| ((#\u . "\\mega\\ampere"))
+  |$kA| ((#\u . "\\kilo\\ampere"))
+  ($ampere $amp |$a|) ((#\u . "\\ampere"))
+  |$mA| ((#\u . "\\milli\\ampere"))
+  (|$microA| $microampere) ((#\u . "\\micro\\ampere"))
+  |$nA| ((#\u . "\\nano\\ampere"))
+  |$pA| ((#\u . "\\pico\\ampere"))
+  |$fA| ((#\u . "\\femto\\ampere"))
+  ;; AU
+  ($astronomical_unit |$au|) ((#\u . "\\astronomicalunit"))
+  ;; becquerel
+  ($becquerel |$Bq|) ((#\u . "\\becquerel"))
+  ;; candela
+  $candela ((#\u . "\\candela"))
+  ;; Coulomb
+  |$GC| ((#\u . "\\giga\\coulomb"))
+  |$MC| ((#\u . "\\mega\\coulomb"))
+  |$kC| ((#\u . "\\kilo\\coulomb"))
+  ($coulomb |$c|) ((#\u . "\\coulomb"))
+  |$mC| ((#\u . "\\milli\\coulomb"))
+  (|$microC| $microcoulomb) ((#\u . "\\micro\\coulomb"))
+  |$pC| ((#\u . "\\pico\\coulomb"))
+  |$nC| ((#\u . "\\nano\\coulomb"))
+  |$fC| ((#\u . "\\femto\\coulomb"))
+  ;; day
+  $day ((#\u . "\\day"))
+  ;; degree
+  $degree ((#\u . "\\degree"))
+  ;; Farad
+  |$GF| ((#\u . "\\giga\\farad"))
+  |$MF| ((#\u . "\\mega\\farad"))
+  |$kF| ((#\u . "\\kilo\\farad"))
+  ($farad |$f|) ((#\u . "\\farad"))
+  |$mF| ((#\u . "\\milli\\farad"))
+  (|$microF| $microfarad) ((#\u . "\\micro\\farad"))
+  |$pF| ((#\u . "\\pico\\farad"))
+  |$nF| ((#\u . "\\nano\\farad"))
+  |$fF| ((#\u . "\\femto\\farad"))
+  ;; feet
+  $feet ((#\u . "ft"))
+  ;; Gram
+  |$Gg| ((#\u . "\\giga\\gram"))
+  |$Mg| ((#\u . "\\mega\\gram"))
+  ($kilogram $kg) ((#\u . "\\kilogram"))
+  $g ((#\u . "\\gram"))
+  $mg ((#\u . "\\milli\\gram"))
+  ($microg $microgram) ((#\u . "\\micro\\gram"))
+  $ng ((#\u . "\\nano\\gram"))
+  $pg ((#\u . "\\pico\\gram"))
+  $fg ((#\u . "\\femto\\gram"))
+  ;; Gray
+  ($gray |$Gy|) ((#\u . "\\gray"))
+  ;; Hectare
+  ($hectare $ha) ((#\u . "\\hectare"))
+  ;; Henry
+  |$GH| ((#\u . "\\giga\\henry"))
+  |$MH| ((#\u . "\\mega\\henry"))
+  |$kH| ((#\u . "\\kilo\\henry"))
+  ($henry |$h|) ((#\u . "\\henry"))
+  |$mH| ((#\u . "\\milli\\henry"))
+  (|$microH| $microhenry) ((#\u . "\\micro\\henry"))
+  |$nH| ((#\u . "\\nano\\henry"))
+  |$pH| ((#\u . "\\pico\\henry"))
+  |$fH| ((#\u . "\\femto\\henry"))
+  ;; Hertz
+  |$GHz| ((#\u . "\\giga\\hertz"))
+  |$MHz| ((#\u . "\\mega\\hertz"))
+  |$kHz| ((#\u . "\\kilo\\hertz"))
+  ($hertz |$Hz|) ((#\u . "\\hertz"))
+  |$mHz| ((#\u . "\\milli\\hertz"))
+  (|$microHz| $microhertz) ((#\u . "\\micro\\hertz"))
+  |$pHz| ((#\u . "\\pico\\hertz"))
+  |$nHz| ((#\u . "\\nano\\hertz"))
+  |$fHz| ((#\u . "\\femto\\hertz"))
+  ;; hour
+  $hour ((#\u . "\\hour"))
+  ;; inch
+  $inch ((#\u . "in"))
+  ;; Joule
+  |$GJ| ((#\u . "\\giga\\joule"))
+  |$MJ| ((#\u . "\\mega\\joule"))
+  |$kJ| ((#\u . "\\kilo\\joule"))
+  ($joule |$j|) ((#\u . "\\joule"))
+  |$mJ| ((#\u . "\\milli\\joule"))
+  (|$microJ| $microjoule) ((#\u . "\\micro\\joule"))
+  |$pJ| ((#\u . "\\pico\\joule"))
+  |$nJ| ((#\u . "\\nano\\joule"))
+  |$fJ| ((#\u . "\\femto\\joule"))
+  ;; Katal
+  ($katal $kat) ((#\u . "\\katal"))
+  ;; Kelvin
+  |$GK| ((#\u . "\\giga\\kelvin"))
+  |$MK| ((#\u . "\\mega\\kelvin"))
+  |$kK| ((#\u . "\\kilo\\kelvin"))
+  ('$kelvin |$k|) ((#\u . "\\kelvin"))
+  |$mK| ((#\u . "\\milli\\kelvin"))
+  (|$microK| $microkelvin) ((#\u . "\\micro\\kelvin"))
+  |$pK| ((#\u . "\\pico\\kelvin"))
+  |$nK| ((#\u . "\\nano\\kelvin"))
+  |$fK| ((#\u . "\\femto\\kelvin"))
+  ;; light year
+  $light_year ((#\u . "lyr"))
+  ;; Liter
+  ($liter $l |$l|) ((#\u . "\\liter"))
+  $ml ((#\u . "\\milli\\liter"))
+  ;; lumen
+  $lumen ((#\u . "\\lumen"))
+  ;; lux
+  $lux ((#\u . "\\lux"))
+  ;; Meter
+  |$Gm| ((#\u . "\\giga\\meter"))
+  |$Mm| ((#\u . "\\mega\\meter"))
+  ($kilometer $km) ((#\u . "\\kilo\\meter"))
+  ($meter $m) ((#\u . "\\meter"))
+  $cm ((#\u . "\\centi\\meter"))
+  $mm ((#\u . "\\milli\\meter"))
+  ($micrometer $micron $microm) ((#\u . "\\micro\\meter"))
+  $nm ((#\u . "\\nano\\meter"))
+  $pm ((#\u . "\\pico\\meter"))
+  $fm ((#\u . "\\femto\\meter"))
+  ;; metric ton
+  $metric_ton ((#\u . "\\tonne"))
+  ;; minute
+  $minute ((#\u . "\\minute"))
+  ;; Mole
+  |$Gmol| ((#\u . "\\giga\\mole"))
+  |$Mmol| ((#\u . "\\mega\\mole"))
+  $kmol ((#\u . "\\kilo\\mole"))
+  ($mole $mol) ((#\u . "\\mole"))
+  $mmol ((#\u . "\\milli\\mole"))
+  ($micromole $micromol) ((#\u . "\\micro\\mole"))
+  $nmol ((#\u . "\\nano\\mole"))
+  $pmol ((#\u . "\\pico\\mole"))
+  $fmol ((#\u . "\\femto\\mole"))
+  ;; Newton
+  |$GN| ((#\u . "\\giga\\newton"))
+  |$MN| ((#\u . "\\mega\\newton"))
+  |$kN| ((#\u . "\\kilo\\newton"))
+  ($newton |$n|) ((#\u . "\\newton"))
+  |$mN| ((#\u . "\\milli\\newton"))
+  (|$microN| $micronewton) ((#\u . "\\micro\\newton"))
+  |$pN| ((#\u . "\\pico\\newton"))
+  |$nN| ((#\u . "\\nano\\newton"))
+  |$fN| ((#\u . "\\femto\\newton"))
+  ;; Ohm
+  |$GOhm| ((#\u . "\\giga\\ohm"))
+  |$MOhm| ((#\u . "\\mega\\ohm"))
+  |$kOhm| ((#\u . "\\kilo\\ohm"))
+  ($ohm |$Ohm|) ((#\u . "\\ohm"))
+  |$mOhm| ((#\u . "\\milli\\ohm"))
+  $microOhm ((#\u . "\\micro\\ohm"))
+  |$pOhm| ((#\u . "\\pico\\ohm"))
+  |$nOhm| ((#\u . "\\nano\\ohm"))
+  |$fOhm| ((#\u . "\\femto\\ohm"))
+  ;; Pascal
+  |$GPa| ((#\u . "\\giga\\pascal"))
+  |$MPa| ((#\u . "\\mega\\pascal"))
+  |$kPa| ((#\u . "\\kilo\\pascal"))
+  ($pascal |$Pa|) ((#\u . "\\pascal"))
+  |$mPa| ((#\u . "\\milli\\pascal"))
+  (|$microPa| $micropascal) ((#\u . "\\micro\\pascal"))
+  |$pPa| ((#\u . "\\pico\\pascal"))
+  |$nPa| ((#\u . "\\nano\\pascal"))
+  |$fPa| ((#\u . "\\femto\\pascal"))
+  ;; parsec
+  ($parsec $pc) ((#\u . "pc"))
+  ;; Second
+  |$Gs| ((#\u . "\\giga\\second"))
+  |$Ms| ((#\u . "\\mega\\second"))
+  $ks ((#\u . "\\kilo\\second"))
+  ($second $s) ((#\u . "\\second"))
+  $ms ((#\u . "\\milli\\second"))
+  ($micros $microsecond) ((#\u . "\\micro\\second"))
+  $ns ((#\u . "\\nano\\second"))
+  $ps ((#\u . "\\pico\\second"))
+  $fs ((#\u . "\\femto\\second"))
+  ;; Siemens
+  |$GS| ((#\u . "\\giga\\siemens"))
+  |$MS| ((#\u . "\\mega\\siemens"))
+  |$kS| ((#\u . "\\kilo\\siemens"))
+  ($siemens |$s|) ((#\u . "\\siemens"))
+  |$mS| ((#\u . "\\milli\\siemens"))
+  (|$microS| $microsiemens) ((#\u . "\\micro\\siemens"))
+  |$nS| ((#\u . "\\nano\\siemens"))
+  |$pS| ((#\u . "\\pico\\siemens"))
+  |$fS| ((#\u . "\\femto\\siemens"))
+  ;; Tesla
+  |$GT| ((#\u . "\\giga\\tesla"))
+  |$MT| ((#\u . "\\mega\\tesla"))
+  |$kT| ((#\u . "\\kilo\\tesla"))
+  ($tesla |$t|) ((#\u . "\\tesla"))
+  |$mT| ((#\u . "\\milli\\tesla"))
+  (|$microT| $microtesla) ((#\u . "\\micro\\tesla"))
+  |$nT| ((#\u . "\\nano\\tesla"))
+  |$pT| ((#\u . "\\pico\\tesla"))
+  |$fT| ((#\u . "\\femto\\tesla"))
+  ;; Volt
+  |$GV| ((#\u . "\\giga\\volt"))
+  |$MV| ((#\u . "\\mega\\volt"))
+  |$kV| ((#\u . "\\kilo\\volt"))
+  ($volt |$v|) ((#\u . "\\volt"))
+  |$mV| ((#\u . "\\milli\\volt"))
+  (|$microV| $microvolt) ((#\u . "\\micro\\volt"))
+  |$pV| ((#\u . "\\pico\\volt"))
+  |$nV| ((#\u . "\\nano\\volt"))
+  |$fV| ((#\u . "\\femto\\volt"))
+  ;; Watt
+  |$GW| ((#\u . "\\giga\\watt"))
+  |$MW| ((#\u . "\\mega\\watt"))
+  |$kW| ((#\u . "\\kilo\\watt"))
+  ($watt |$w|) ((#\u . "\\watt"))
+  |$mW| ((#\u . "\\milli\\watt"))
+  (|$microW| $microwatt) ((#\u . "\\micro\\watt"))
+  |$pW| ((#\u . "\\pico\\watt"))
+  |$nW| ((#\u . "\\nano\\watt"))
+  |$fW| ((#\u . "\\femto\\watt"))
+  ;; Weber
+  |$GWb| ((#\u . "\\giga\\weber"))
+  |$MWb| ((#\u . "\\mega\\weber"))
+  |$kWb| ((#\u . "\\kilo\\weber"))
+  ($weber |$Wb|) ((#\u . "\\weber"))
+  |$mWb| ((#\u . "\\milli\\weber"))
+  (|$microWb| $microweber) ((#\u . "\\micro\\weber"))
+  |$nWb| ((#\u . "\\nano\\weber"))
+  |$pWb| ((#\u . "\\pico\\weber"))
+  |$fWb| ((#\u . "\\femto\\weber"))
+  ;; yard
+  $yard ((#\u . "yd")))
+
+(def-style-symbol-default $siunitx
+  (#\u . "~*~A~:[~;~:*~@{_~A~}~]"))
