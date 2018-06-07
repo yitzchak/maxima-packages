@@ -106,6 +106,19 @@
                      do (setf (gethash key table) (second keyval)))
                (setf (gethash (first keyval) table) (second keyval)))))
 
+(defun get-style (name)
+  (or
+    (gethash name texify-styles)
+    (setf (gethash name texify-styles) (make-instance 'texify-style))))
+
+(defmacro def-style-functions (name &rest functions)
+  `(initialize-hash (texify-style-functions (get-style ',name))
+                    ',functions))
+
+(defmacro def-style-symbols (name &rest symbols)
+  `(initialize-hash (texify-style-symbols (get-style ',name))
+                    ',symbols))
+
 (defun make-texify-style (name &key (functions nil)
                                     (function-default nil)
                                     (normalizers nil)
@@ -873,19 +886,19 @@ Normalization Functions
              $%b ((#\m . "b"))
              $%b_prime ((#\m . "b'"))))
 
-(make-texify-style '$tex_inv_trig_herschel
-  :symbols '(%acos ((#\m . "\\cos^{-1}"))
-             %asin ((#\m . "\\sin^{-1}"))
-             %atan ((#\m . "\\tan^{-1}"))))
+(def-style-symbols $tex_inv_trig_herschel
+  %acos ((#\m . "\\cos^{-1}"))
+  %asin ((#\m . "\\sin^{-1}"))
+  %atan ((#\m . "\\tan^{-1}")))
 
-(make-texify-style '$tex_diff_upright_d
-  :functions '(texify-diff-euler ((#\m . "~2*~@{\\mathop{{\\rm D}}_~:/nullfix/~@[^{~:/nullfix/}~] ~}~1@*~/prefix/"))
-               texify-diff-leibniz ((#\m . "~*~*{{\\rm d}~@[^{~:/nullfix/}~]~@[~:/nullfix/~]}\\over{~@{\\mathop{{\\rm d}~:/nullfix/}~@[^{~:/nullfix/}~]~}}~1@*~@[~/prefix/~]"))
-               (%integrate $integrate) ((#\m . "~*\\int~2*~#[~:;_{~'s:/nullfix/}^{~'s:/nullfix/}~] ~1@*~:/nullfix/\\mathop{{\\rm d}~:/nullfix/}"))))
+(def-style-functions $tex_diff_upright_d
+  texify-diff-euler ((#\m . "~2*~@{\\mathop{{\\rm D}}_~:/nullfix/~@[^{~:/nullfix/}~] ~}~1@*~/prefix/"))
+  texify-diff-leibniz ((#\m . "~*~*{{\\rm d}~@[^{~:/nullfix/}~]~@[~:/nullfix/~]}\\over{~@{\\mathop{{\\rm d}~:/nullfix/}~@[^{~:/nullfix/}~]~}}~1@*~@[~/prefix/~]"))
+  (%integrate $integrate) ((#\m . "~*\\int~2*~#[~:;_{~'s:/nullfix/}^{~'s:/nullfix/}~] ~1@*~:/nullfix/\\mathop{{\\rm d}~:/nullfix/}")))
 
-(make-texify-style '$tex_no_math_delimiters
-  :functions '(mlabel ((#\m . "~2*~:/nullfix/")
-                       (#\i . "~2*~:/nullfix/"))))
+(def-style-functions $tex_no_math_delimiters
+  mlabel ((#\m . "~2*~:/nullfix/")
+          (#\i . "~2*~:/nullfix/")))
 
 (make-texify-style '$tex_no_label
   :normalizers `(mlabel ((#\m . ,#'tex-no-label-normalize-mlabel))))
@@ -893,8 +906,8 @@ Normalization Functions
 (make-texify-style '$tex_eq_number
   :normalizers `(mlabel ((#\m . ,#'tex-eq-number-normalize-mlabel))))
 
-(make-texify-style '$tex_pmatrix
-  :functions '($matrix ((#\m . "~*\\pmatrix{~@{~'a:/nullfix/~^ & ~}~}~^\\cr~%  ~}}"))))
+(def-style-functions $tex_pmatrix
+  $matrix ((#\m . "~*\\pmatrix{~@{~'a:/nullfix/~^ & ~}~}~^\\cr~%  ~}}")))
 
 (make-texify-style '$tex_diff_lagrange
   :normalizers `((%derivative $diff) ((#\m . ,#'tex-normalize-diff-lagrange))))
@@ -1055,10 +1068,10 @@ Normalization Functions
              $%m_u ((#\m . "\\mu_{\\mathrm{u}}"))
              $%c_1L ((#\m . "c_{\\mathrm{1L}}"))))
 
-(make-texify-style '$latex_diff_upright_d
-  :functions '(texify-diff-euler ((#\m . "~2*~@{\\mathrm{D}_~:/nullfix/~@[^{~:/nullfix/}~] ~}~1@*~/prefix/"))
-               texify-diff-leibniz ((#\m . "~*~*\\frac{\\mathrm{d}~@[^{~:/nullfix/}~]~@[~:/nullfix/~]}{~@{\\mathop{\\mathrm{d}~:/nullfix/}~@[^{~:/nullfix/}~]~}}~1@*~@[~/prefix/~]"))
-               (%integrate $integrate) ((#\m . "~*\\int~2*~#[~:;_{~'s:/nullfix/}^{~'s:/nullfix/}~] ~1@*~:/nullfix/\\mathop{\\mathrm{d}~:/nullfix/}"))))
+(def-style-functions $latex_diff_upright_d
+  texify-diff-euler ((#\m . "~2*~@{\\mathrm{D}_~:/nullfix/~@[^{~:/nullfix/}~] ~}~1@*~/prefix/"))
+  texify-diff-leibniz ((#\m . "~*~*\\frac{\\mathrm{d}~@[^{~:/nullfix/}~]~@[~:/nullfix/~]}{~@{\\mathop{\\mathrm{d}~:/nullfix/}~@[^{~:/nullfix/}~]~}}~1@*~@[~/prefix/~]"))
+  (%integrate $integrate) ((#\m . "~*\\int~2*~#[~:;_{~'s:/nullfix/}^{~'s:/nullfix/}~] ~1@*~:/nullfix/\\mathop{\\mathrm{d}~:/nullfix/}")))
 
 (make-texify-style '$amsmath
   :functions '((%at $at) ((#\m . "~*\\left.~/postfix/\\rvert_{~'s:/nullfix/}"))
@@ -1071,30 +1084,30 @@ Normalization Functions
   :string-default '((#\m . "\\text{~*~A}")
                     (#\t . "\\text{~A}")))
 
-(make-texify-style '$amsmath_pmatrix
-  :functions '($matrix ((#\m . "~*\\begin{pmatrix}~%~@{~{~*~@{~:/nullfix/~^ & ~}~}~^\\\\~%  ~}~%\\end{pmatrix}"))))
+(def-style-functions $amsmath_pmatrix
+  $matrix ((#\m . "~*\\begin{pmatrix}~%~@{~{~*~@{~:/nullfix/~^ & ~}~}~^\\\\~%  ~}~%\\end{pmatrix}")))
 
-(make-texify-style '$breqn
-  :functions '(mdefine ((#\m . "~*~/postfix/ \\hiderel{:=} ~/prefix/"))
-               mdefmacro ((#\m . "~*~/postfix/ \\hiderel{::=} ~/prefix/"))
-               mlabel ((#\m . "~*~:[\\begin{dmath*}~%~:/nullfix/~%\\end{dmath*}~;~:*\\begin{dmath}[number={\\(~:/nullfix/\\)}]~%~:/nullfix/~%\\end{dmath}~]")
-                       (#\i . "\\(~*~*~:/nullfix/\\)"))
-               mset ((#\m . "~*~/postfix/ \\hiderel{::} ~/prefix/"))
-               msetq ((#\m . "~*~/postfix/ \\hiderel{:} ~/prefix/"))
-               texify-math ((#\m . "~*\\begin{dmath}~%~:/nullfix/~%\\end{dmath)")
-                            (#\i . "\\(~*~:/nullfix/\\)"))))
+(def-style-functions $breqn
+  mdefine ((#\m . "~*~/postfix/ \\hiderel{:=} ~/prefix/"))
+  mdefmacro ((#\m . "~*~/postfix/ \\hiderel{::=} ~/prefix/"))
+  mlabel ((#\m . "~*~:[\\begin{dmath*}~%~:/nullfix/~%\\end{dmath*}~;~:*\\begin{dmath}[number={\\(~:/nullfix/\\)}]~%~:/nullfix/~%\\end{dmath}~]")
+          (#\i . "\\(~*~*~:/nullfix/\\)"))
+  mset ((#\m . "~*~/postfix/ \\hiderel{::} ~/prefix/"))
+  msetq ((#\m . "~*~/postfix/ \\hiderel{:} ~/prefix/"))
+  texify-math ((#\m . "~*\\begin{dmath}~%~:/nullfix/~%\\end{dmath)")
+               (#\i . "\\(~*~:/nullfix/\\)")))
 
-(make-texify-style '$mathtools
-  :functions '(mdefine ((#\m . "~*~/postfix/ \\coloneqq ~/prefix/"))
-               mdefmacro ((#\m . "~*~/postfix/ \\Coloneqq ~/prefix/"))
-               mset ((#\m . "~*~/postfix/ \\dblcolon ~/prefix/"))
-               msetq ((#\m . "~*~/postfix/ \\vcentcolon ~/prefix/"))))
+(def-style-functions $mathtools
+  mdefine ((#\m . "~*~/postfix/ \\coloneqq ~/prefix/"))
+  mdefmacro ((#\m . "~*~/postfix/ \\Coloneqq ~/prefix/"))
+  mset ((#\m . "~*~/postfix/ \\dblcolon ~/prefix/"))
+  msetq ((#\m . "~*~/postfix/ \\vcentcolon ~/prefix/")))
 
-(make-texify-style '$nicefrac
-  :functions '((mquotient rat) ((#\m . "~*\\frac{~:/nullfix/}{~:/nullfix/}")
-                                (#\i . "~*\\nicefrac{~/postfix/}{~/prefix/}")
-                                (#\s . "~*~/postfix//~/prefix/")
-                                (#\u . "~*\\nicefrac{~/postfix/}{~/prefix/}"))))
+(def-style-functions $nicefrac
+  (mquotient rat) ((#\m . "~*\\frac{~:/nullfix/}{~:/nullfix/}")
+                   (#\i . "~*\\nicefrac{~/postfix/}{~/prefix/}")
+                   (#\s . "~*~/postfix//~/prefix/")
+                   (#\u . "~*\\nicefrac{~/postfix/}{~/prefix/}")))
 
 (make-texify-style '$siunitx
   :functions '(|$`| ((#\m . "~*\\SI{~'n:/nullfix/}{~'u:/nullfix/}"))
